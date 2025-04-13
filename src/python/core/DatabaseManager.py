@@ -1,3 +1,5 @@
+import os
+
 import psycopg2
 
 from src.python.repositories.Date_repository import DateRepository
@@ -6,15 +8,16 @@ from src.python.repositories.Group_repository import GroupRepository
 from src.python.services.Date_service import DateService
 from src.python.services.Discipline_service import DisciplineService
 from src.python.services.Group_service import GroupService
+from Config import Config
 
 
 class DatabaseManager:
     def __init__(self):
         self.connection = psycopg2.connect(
-            dbname="schedule_db",
-            user="postgres",
-            password="uhuvid45",
-            host="localhost"
+            dbname=Config.DB_NAME,
+            user=Config.DB_USER,
+            password=Config.DB_PASSWORD,
+            host=Config.DB_HOST
         )
 
         self.group_service = GroupService(GroupRepository(self.connection))
