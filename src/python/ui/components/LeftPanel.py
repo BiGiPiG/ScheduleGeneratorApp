@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtWidgets
 
-from src.python.core.DatabaseManeger import DatabaseManager
+from src.python.core.DatabaseManager import DatabaseManager
 from src.python.ui.components.CalendarComboBox import CalendarComboBox
 from src.python.ui.components.MultiSelectComboBox import MultiSelectComboBox
 
