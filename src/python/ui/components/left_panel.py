@@ -140,14 +140,30 @@ class LeftPanel(QtWidgets.QFrame):
         combo.setGeometry(geometry)
         combo.setPlaceholderText(placeholder)
         combo.setStyleSheet("""
-            font-family: 'Inter';
-            font-style: normal;
-            font-weight: 300;
-            font-size: 24px;
-            line-height: 29px;
-            display: flex;
-            align-items: center;
-            color: #000000;
+
+            QComboBox {
+                font-family: 'Inter';
+                font-style: normal;
+                font-weight: 300;
+                font-size: 24px;
+                line-height: 29px;
+                color: #000000;
+                border-radius: 0px;
+            }
+            
+            QComboBox QAbstractItemView {
+                border-radius: 0px; 
+            }
+            
+            QComboBox QAbstractItemView::item {
+                border-radius: 0px;
+            }
+        
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #9187E5;
+                color: #FFFFFF;       
+            }
+            
         """)
         return combo
 
@@ -187,11 +203,9 @@ class LeftPanel(QtWidgets.QFrame):
         # Сохраняем текущий выбранный элемент
         current_selection = self.discipline_comboBox.currentText()
 
-        # Очищаем комбобокс перед обновлением
         self.discipline_comboBox.clear()
 
         try:
-            # Получаем список дисциплин в зависимости от выбранных групп
             if self.group_multiSelectComboBox.selectedItems():
                 disciplines = self.dbManager.discipline_service.get_by_groups(
                     self.group_multiSelectComboBox.selectedItems()
@@ -199,10 +213,8 @@ class LeftPanel(QtWidgets.QFrame):
             else:
                 disciplines = self.dbManager.discipline_service.get_all()
 
-            # Преобразуем объекты дисциплин в строки (если они еще не строки)
             discipline_names = [disc.title + " " + disc.worktype for disc in disciplines]
 
-            # Добавляем элементы в комбобокс
             self.discipline_comboBox.addItems(discipline_names)
 
             # Восстанавливаем предыдущий выбор, если он все еще доступен

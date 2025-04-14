@@ -17,12 +17,30 @@ class MultiSelectComboBox(QtWidgets.QComboBox):
             self.setGeometry(geometry)
 
         self.setStyleSheet("""
-            font-family: 'Inter';
-            font-style: normal;
-            font-weight: 300;
-            font-size: 24px;
-            line-height: 29px;
-            color: #000000;
+
+            QComboBox {
+                font-family: 'Inter';
+                font-style: normal;
+                font-weight: 300;
+                font-size: 24px;
+                line-height: 29px;
+                color: #000000;
+                border-radius: 0px;
+            }
+            
+            QComboBox QAbstractItemView {
+                border-radius: 0px; 
+            }
+            
+            QComboBox QAbstractItemView::item {
+                border-radius: 0px;
+            }
+        
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #9187E5;
+                color: #FFFFFF;       
+            }
+            
         """)
 
         self.lineEdit().setPlaceholderText("Выберите группы")
