@@ -1,8 +1,8 @@
 from PyQt6 import QtCore, QtWidgets
 
-from src.python.core.DatabaseManager import DatabaseManager
-from src.python.ui.components.CalendarComboBox import CalendarComboBox
-from src.python.ui.components.MultiSelectComboBox import MultiSelectComboBox
+from src.python.core.database_manager import DatabaseManager
+from src.python.ui.components.calendar_combo_box import CalendarComboBox
+from src.python.ui.components.multiselect_combo_box import MultiSelectComboBox
 
 
 def create_label(parent, geometry, text, object_name):

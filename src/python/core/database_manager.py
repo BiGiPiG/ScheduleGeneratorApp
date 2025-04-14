@@ -2,12 +2,12 @@ import os
 
 import psycopg2
 
-from src.python.repositories.Date_repository import DateRepository
-from src.python.repositories.Discipline_repository import DisciplineRepository
-from src.python.repositories.Group_repository import GroupRepository
-from src.python.services.Date_service import DateService
-from src.python.services.Discipline_service import DisciplineService
-from src.python.services.Group_service import GroupService
+from src.python.repositories.date_repository import DateRepository
+from src.python.repositories.discipline_repository import DisciplineRepository
+from src.python.repositories.group_repository import GroupRepository
+from src.python.services.date_service import DateService
+from src.python.services.discipline_service import DisciplineService
+from src.python.services.group_service import GroupService
 from Config import Config
 
 

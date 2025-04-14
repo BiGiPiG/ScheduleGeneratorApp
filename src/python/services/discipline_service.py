@@ -1,7 +1,7 @@
 from typing import List
 from datetime import date
 
-from src.python.repositories.Discipline_repository import Discipline
+from src.python.repositories.discipline_repository import Discipline
 
 
 class DisciplineService:
