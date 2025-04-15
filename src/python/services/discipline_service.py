@@ -24,3 +24,10 @@ class DisciplineService:
     def get_by_groups_and_date(self, group_names: List[str], date: date) -> List[Discipline]:
         """Получить расписание по группам и дате"""
         return self.db.find_disciplines_by_groups_and_date(group_names, date)
+
+    def get_all_discipline_information(self, group_names, date, title, work_type):
+        return self.db.find_all_discipline_information(group_names, date, title, work_type)
+
+    def get_prep(self, group_names, date, title, work_type):
+        return self.db.find_prep(group_names, date, title, work_type)
+
