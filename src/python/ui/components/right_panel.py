@@ -157,6 +157,8 @@ class RightPanel(QtWidgets.QFrame):
             text="Отменить",
             object_name="cancel_button"
         )
+
+        self.cancel_button.clicked.connect(self.show_cancel_dialog)
         self.add_button = create_button(
             parent=self,
             geometry=QtCore.QRect(x_position, 550, 150, 40),
@@ -169,7 +171,7 @@ class RightPanel(QtWidgets.QFrame):
             parent=self,
             label_text="Номер пары:",
             value_text="6",
-            y=60,
+            y=80,
             object_name="pair_edit"
         )
 
@@ -177,7 +179,7 @@ class RightPanel(QtWidgets.QFrame):
             parent=self,
             label_text="Предмет:",
             value_text="Введение в разработку ПО",
-            y=100,
+            y=120,
             object_name="subject_edit"
         )
 
@@ -185,7 +187,7 @@ class RightPanel(QtWidgets.QFrame):
             parent=self,
             label_text="Преподаватель:",
             value_text="Иванов И.И.",
-            y=140,
+            y=160,
             object_name="teacher_edit"
         )
 
@@ -193,7 +195,7 @@ class RightPanel(QtWidgets.QFrame):
             parent=self,
             label_text="Аудитория:",
             value_text="ИВЦ-101",
-            y=180,
+            y=200,
             object_name="room_edit"
         )
 
@@ -201,7 +203,7 @@ class RightPanel(QtWidgets.QFrame):
             parent=self,
             label_text="Дата и время:",
             value_text="08.04.2025",
-            y=220,
+            y=240,
             object_name="datetime_edit"
         )
 
@@ -246,3 +248,41 @@ class RightPanel(QtWidgets.QFrame):
 
         clipboard = QtWidgets.QApplication.clipboard()
         clipboard.setText(message)
+
+    def show_cancel_dialog(self):
+        groups = self.selected_groups
+        pair = self.pair_edit.text()
+        subject = self.subject_edit.text()
+        teacher = self.teacher_edit.text()
+        room = self.room_edit.text()
+        datetime_ = self.datetime_edit.text()
+
+        message = (
+            f"Группа {groups[0]}\n"
+            f"{subject} {datetime_} на {pair} паре отменяется\n"
+        )
+
+        dialog = QtWidgets.QMessageBox()
+        dialog.setWindowTitle("Информация об отмене")
+        dialog.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
+        dialog.setText(message)
+        dialog.setIcon(QtWidgets.QMessageBox.Icon.Information)
+
+        copy_button = dialog.addButton("Скопировать", QtWidgets.QMessageBox.ButtonRole.ActionRole)
+
+        dialog.exec()
+
+        clipboard = QtWidgets.QApplication.clipboard()
+        clipboard.setText(message)
+
+    def update_labels(self, info, prep):
+        self.pair_edit.setText(str(info[0][0]))
+        self.subject_edit.setText(str(info[0][1]))
+        self.teacher_edit.setText(prep)
+        self.room_edit.setText(str(info[0][2]))
+        self.datetime_edit.setText(str(info[0][3]))
+
+    def update_selected_groups(self, groups):
+        self.selected_groups = groups
+
+
