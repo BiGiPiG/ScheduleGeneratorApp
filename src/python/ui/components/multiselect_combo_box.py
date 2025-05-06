@@ -11,8 +11,6 @@ class MultiSelectComboBox(QtWidgets.QComboBox):
         self.lineEdit().setReadOnly(True)
         self.setInsertPolicy(QtWidgets.QComboBox.InsertPolicy.NoInsert)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-
         if geometry:
             self.setGeometry(geometry)
 
@@ -54,13 +52,12 @@ class MultiSelectComboBox(QtWidgets.QComboBox):
         self._prevent_hide = False
 
     def showPopup(self):
-        self._prevent_hide = True
+        self.setCurrentIndex(-1)
         super().showPopup()
+        self.lineEdit().clear()
+        self.lineEdit().setPlaceholderText("Выберите группы")
 
     def hidePopup(self):
-        if self._prevent_hide:
-            self._prevent_hide = False
-            return  # Блокируем закрытие при клике
         super().hidePopup()
 
     def addItems(self, items):
@@ -88,15 +85,14 @@ class MultiSelectComboBox(QtWidgets.QComboBox):
         new_state = Qt.CheckState.Unchecked if current_state == Qt.CheckState.Checked else Qt.CheckState.Checked
         self.model().setData(index, new_state, Qt.ItemDataRole.CheckStateRole)
 
-        # Обновляем отображаемый текст
-        self.updateDisplayText()
-
         self.activated.emit(self.selectedItems())
-        self._prevent_hide = True
+        self.hidePopup()
 
     def updateDisplayText(self):
+        self.lineEdit().blockSignals(True)
         self.lineEdit().clear()
         self.lineEdit().setPlaceholderText("Выберите группы")
+        self.lineEdit().blockSignals(False)
 
     def selectedItems(self):
         selected = []

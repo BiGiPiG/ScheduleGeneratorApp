@@ -192,6 +192,13 @@ class LeftPanel(QtWidgets.QFrame):
 
     def update_group_multiSelector(self):
 
+        if self.group_multiSelectComboBox.selectedItems():
+            self.group_multiSelectComboBox.updateItems(self.dbManager.group_service.get_by_group(
+                self.group_multiSelectComboBox.selectedItems()
+            ))
+            self.group_multiSelectComboBox.hidePopup()
+            return
+
         if self.discipline_comboBox.currentIndex() == -1:
             self.group_multiSelectComboBox.updateItems(self.dbManager.group_service.get_all())
         else:
