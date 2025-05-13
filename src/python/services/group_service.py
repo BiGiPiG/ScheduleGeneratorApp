@@ -24,3 +24,7 @@ class GroupService:
     def get_by_discipline(self, discipline_name: str) -> List[Group]:
         """Получить группы по дисциплине"""
         return self.db.find_groups_by_discipline(discipline_name)
+
+    def get_by_group(self, group_names):
+        """Получить группы потока"""
+        return self.db.find_by_groups(group_names)

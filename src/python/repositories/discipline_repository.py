@@ -43,20 +43,29 @@ class DisciplineRepository:
     def find_disciplines_by_groups(self, group_names):
         """Получить список дисциплин для списка групп"""
         query = """
-            SELECT DISTINCT r.pair, d.shorttitle, sc_worktypes.title
+            SELECT DISTINCT d.shorttitle, sc_worktypes.title
             FROM sc_group g
             JOIN sc_rasp18_groups rg ON g.id = rg.group_id
             JOIN sc_rasp18 r ON rg.rasp18_id = r.id
             JOIN sc_disc d ON r.disc_id = d.id
             JOIN sc_rasp18_days ON sc_rasp18_days.id = r.day_id
             JOIN sc_worktypes ON r.worktype = sc_worktypes.id
-            WHERE g.title = ANY(%s)
-            ORDER BY r.pair;
+            WHERE d.id IN (
+                SELECT d2.id
+                FROM sc_group g2
+                JOIN sc_rasp18_groups rg2 ON g2.id = rg2.group_id
+                JOIN sc_rasp18 r2 ON rg2.rasp18_id = r2.id
+                JOIN sc_disc d2 ON r2.disc_id = d2.id
+                WHERE g2.title = ANY(%s)
+                GROUP BY d2.id
+                HAVING COUNT(DISTINCT g2.title) = (SELECT COUNT(*) FROM sc_group WHERE title = ANY(%s))
+            )
+            GROUP BY d.shorttitle, sc_worktypes.title;
         """
 
         try:
-            self.cursor.execute(query, (group_names, ))
-            return [Discipline(row[0], row[1], row[2])
+            self.cursor.execute(query, (group_names, group_names))
+            return [Discipline(-1, row[0], row[1])
                     for row in self.cursor.fetchall()]
         except Exception as e:
             print(f"Ошибка при получении предметов групп: {e}")
@@ -86,7 +95,7 @@ class DisciplineRepository:
 
     def find_all_discipline_information(self, group_names, date, title, work_type):
         query = """
-                SELECT pair, d.shorttitle, sc_rasp18_rooms.room, sc_rasp18_days.day
+                SELECT pair, d.shorttitle, sc_rasp18_rooms.room, sc_rasp18_days.day, rg.subgroup
                 FROM sc_group g
                 JOIN sc_rasp18_groups rg ON g.id = rg.group_id
                 JOIN sc_rasp18 r ON rg.rasp18_id = r.id
@@ -101,7 +110,7 @@ class DisciplineRepository:
         try:
             self.cursor.execute(query, (group_names, date, title, work_type))
             return [[row[0], row[1], row[2],
-                    QDate(row[3].year, row[3].month, row[3].day).toString("yyyy-MM-dd")]
+                    QDate(row[3].year, row[3].month, row[3].day).toString("yyyy-MM-dd"), row[4]]
                     for row in self.cursor.fetchall()]
         except Exception as e:
             print(f"Ошибка при получении информации о предмете: {e}")
@@ -132,4 +141,138 @@ class DisciplineRepository:
         except Exception as e:
             print(f"Ошибка при получении информации о предмете: {e}")
             return []
+
+    def find_id(self, group_names, date, title, subgroup, pair):
+        query = """
+                SELECT DISTINCT r.id
+                FROM sc_group g
+                JOIN sc_rasp18_groups rg ON g.id = rg.group_id
+                JOIN sc_rasp18 r ON rg.rasp18_id = r.id
+                JOIN sc_disc d ON r.disc_id = d.id
+                JOIN sc_rasp18_days ON sc_rasp18_days.id = r.day_id
+                JOIN sc_rasp18_rooms ON r.id = sc_rasp18_rooms.rasp18_id
+                WHERE g.title = ANY(%s) and sc_rasp18_days.day = %s and d.shorttitle = %s
+                and rg.subgroup = %s
+                and r.pair = %s
+                """
+
+        try:
+            self.cursor.execute(query, (group_names, date, title, subgroup, pair))
+            return [row[0]
+                    for row in self.cursor.fetchall()]
+        except Exception as e:
+            print(f"Ошибка при получении id предмета: {e}")
+            return []
+
+    def check_time_for_reschedule(self, groups, date, pair):
+        groups = tuple(groups)
+        query = """
+                SELECT DISTINCT
+                    r.id
+                FROM 
+                    sc_rasp18 r
+                JOIN 
+                    sc_rasp18_days d ON r.day_id = d.id
+                JOIN 
+                    sc_rasp18_groups g ON r.id = g.rasp18_id
+                JOIN 
+                    sc_group gr ON g.group_id = gr.id
+                WHERE 
+                    gr.title IN %s
+                    AND d.day = %s
+                    AND r.pair = %s;
+                """
+        print(groups, date, pair)
+        try:
+            self.cursor.execute(query, (groups, date, pair))
+            return [row[0]
+                    for row in self.cursor.fetchall()]
+        except Exception as e:
+            print(f"Ошибка при проверке времени: {e}")
+            raise Exception("Не удалось проверить доступность времени для переноса")
+
+    def check_room_for_reschedule(self, room, date, pair):
+        query = """
+                SELECT DISTINCT
+                    rm.room
+                FROM 
+                    sc_rasp18 r
+                JOIN 
+                    sc_rasp18_days d ON r.day_id = d.id
+                JOIN 
+                    sc_rasp18_groups g ON r.id = g.rasp18_id
+                JOIN 
+                    sc_group gr ON g.group_id = gr.id
+                LEFT JOIN 
+                    sc_rasp18_rooms rm ON r.id = rm.rasp18_id
+                WHERE 
+                    rm.room = %s
+                    AND d.day = %s
+                    AND r.pair = %s;
+                """
+        print(room, date, pair)
+        try:
+            self.cursor.execute(query, (room, date, pair))
+            return [row[0]
+                    for row in self.cursor.fetchall()]
+        except Exception as e:
+            print(f"Ошибка при проверке аудитории: {e}")
+            raise Exception("Не удалось проверить доступность аудитории для переноса")
+
+    def delete_discipline(self, rasp18_id):
+        try:
+            self.cursor.execute("START TRANSACTION")
+
+            insert_log_query = """
+                INSERT INTO sc_rasp18_move (rasp18_src_id, reason, comment)
+                VALUES (%s, 'Удаление пары', 'Пара была удалена из расписания')
+            """
+            self.cursor.execute(insert_log_query, (rasp18_id,))
+
+            delete_queries = [
+                "DELETE FROM sc_rasp18_groups WHERE rasp18_id = %s",
+                "DELETE FROM sc_rasp18_preps WHERE rasp18_id = %s",
+                "DELETE FROM sc_rasp18_rooms WHERE rasp18_id = %s",
+                "DELETE FROM sc_rasp18_info WHERE rasp18_id = %s",
+                "DELETE FROM sc_rasp18 WHERE id = %s",
+            ]
+
+            for query in delete_queries:
+                self.cursor.execute(query, (rasp18_id,))
+
+            self.cursor.execute("COMMIT")
+            print("Пара успешно удалена")
+
+        except Exception as e:
+            self.cursor.execute("ROLLBACK")
+            print(f"Ошибка при удалении пары: {e}")
+
+    def db_reschedule_discipline(self, id, new_pair, new_day, new_times):
+        try:
+            self.cursor.execute("START TRANSACTION")
+
+            insert_log_query = """
+                            INSERT INTO sc_rasp18_move (rasp18_src_id, reason, comment)
+                            VALUES (%s, 'Пеернос пары', 'Пара была перенесена')
+                        """
+
+            self.cursor.execute(insert_log_query, (id,))
+
+            reschedule_query = """
+                UPDATE sc_rasp18
+                SET 
+                    pair = %s,
+                    timestart = %s,
+                    timeend = %s,
+                    day_id = (SELECT id FROM sc_rasp18_days WHERE day = %s)
+                WHERE id = %s;
+            """
+
+            self.cursor.execute(reschedule_query, (new_pair, new_times.start, new_times.end, new_day, id))
+
+            self.cursor.execute("COMMIT")
+        except Exception as e:
+            self.cursor.execute("ROLLBACK")
+            print(f"Ошибка при переносе пары: {e}")
+            raise Exception("Ошибка при работе с бд")
 

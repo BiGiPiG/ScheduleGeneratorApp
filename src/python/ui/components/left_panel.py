@@ -56,11 +56,13 @@ class LeftPanel(QtWidgets.QFrame):
         self.setup_ui(parent)
         self.right_panel = right_panel
 
+        self.right_panel.cancel_button.clicked.connect(self.set_default_comboboxes)
+
         # подключение к бд
         self.dbManager = DatabaseManager()
 
         # инициализируем селеторы
-        self.set_defaul_comboboxes()
+        self.set_default_comboboxes()
 
     def setup_ui(self, parent):
         self.setGeometry(QtCore.QRect(10, 20, 485, 660))
@@ -135,7 +137,7 @@ class LeftPanel(QtWidgets.QFrame):
             object_name="reset_button"
         )
 
-        self.reset_button.clicked.connect(self.set_defaul_comboboxes)
+        self.reset_button.clicked.connect(self.set_default_comboboxes)
         self.choice_button.clicked.connect(self.update_right_panel)
 
     def create_combobox(self, geometry, placeholder):
@@ -227,18 +229,16 @@ class LeftPanel(QtWidgets.QFrame):
 
             self.discipline_comboBox.addItems(discipline_names)
 
-            # Восстанавливаем предыдущий выбор, если он все еще доступен
             if current_selection in discipline_names:
                 self.discipline_comboBox.setCurrentText(current_selection)
 
         except Exception as e:
             print(f"Ошибка при обновлении списка дисциплин: {e}")
         finally:
-            # Всегда разблокируем сигналы
             self.discipline_comboBox.blockSignals(False)
 
     def update_date_comboBox(self):
-        print(self.discipline_comboBox.currentText())
+        # print(self.discipline_comboBox.currentText())
         if self.discipline_comboBox.currentIndex() != -1 and self.group_multiSelectComboBox.selectedItems():
             self.date_comboBox.set_enabled_dates(
                 self.dbManager.date_service.get_by_discs_and_groups(
@@ -256,7 +256,7 @@ class LeftPanel(QtWidgets.QFrame):
         self.update_discipline_comboBox()
         self.update_date_comboBox()
 
-    def set_defaul_comboboxes(self):
+    def set_default_comboboxes(self):
         group_placeholder = self.group_multiSelectComboBox.lineEdit().placeholderText()
         self.group_multiSelectComboBox.addItems(self.dbManager.group_service.get_all())
         self.group_multiSelectComboBox.lineEdit().clear()
@@ -281,17 +281,17 @@ class LeftPanel(QtWidgets.QFrame):
             self.discipline_comboBox.currentText()[-2:]
         )
 
-        prep = self.dbManager.discipline_service.get_prep(
-            self.group_multiSelectComboBox.selectedItems(),
-            self.date_comboBox.currentText(),
-            self.discipline_comboBox.currentText()[:-3],
-            self.discipline_comboBox.currentText()[-2:]
-        )
-
-        if not prep:
-            prep = "Неизвестно"
-        else:
-            prep = prep[0]
+        # prep = self.dbManager.discipline_service.get_prep(
+        #     self.group_multiSelectComboBox.selectedItems(),
+        #     self.date_comboBox.currentText(),
+        #     self.discipline_comboBox.currentText()[:-3],
+        #     self.discipline_comboBox.currentText()[-2:]
+        # )
+        #
+        # if not prep:
+        #     prep = "Неизвестно"
+        # else:
+        #     prep = prep[0]
 
         self.right_panel.update_selected_groups(self.group_multiSelectComboBox.selectedItems())
-        self.right_panel.update_labels(discipline, prep)
+        self.right_panel.update_labels(discipline[0])
