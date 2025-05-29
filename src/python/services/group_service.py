@@ -28,3 +28,6 @@ class GroupService:
     def get_by_group(self, group_names):
         """Получить группы потока"""
         return self.db.find_by_groups(group_names)
+
+    def get_for_action(self, group_names, old_date, title, subgroup, old_pair):
+        return self.db.find_for_action(*self.db.find_id(group_names, old_date, title, subgroup, old_pair))

@@ -45,19 +45,16 @@ class DisciplineService:
     def get_all_discipline_information(self, group_names, query_date, title, work_type):
         return self.db.find_all_discipline_information(group_names, query_date, title, work_type)
 
-    def get_prep(self, group_names, query_date, title, work_type):
-        return self.db.find_prep(group_names, query_date, title, work_type)
-
-    def delete_discipline(self, group_names, datetime_, title, subgroup, pair):
+    def delete_discipline(self, group_names, datetime_, title, subgroup, pair, message):
         info = self.db.find_id(group_names, datetime_, title, subgroup, pair)
         if len(info):
-            self.db.delete_discipline(info[0])
+            self.db.delete_discipline(info[0], message)
         else:
             print("YНе удалось найти пару")
             raise RuntimeError("Не удалось найти пару")
 
     def reschedule_discipline(self, group_names, old_date, old_pair,
-                              new_date, title, subgroup, new_pair, room):
+                              new_date, title, subgroup, new_pair, room, message):
 
         if len(self.db.check_time_for_reschedule(group_names, new_date, new_pair)):
             raise RuntimeError("Данное время уже занято")
@@ -68,5 +65,6 @@ class DisciplineService:
             *self.db.find_id(group_names, old_date, title, subgroup, old_pair),
             new_pair,
             new_date,
-            self.PAIR_TIMES[int(new_pair)]
+            self.PAIR_TIMES[int(new_pair)],
+            message
         )

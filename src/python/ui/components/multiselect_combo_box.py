@@ -11,6 +11,9 @@ class MultiSelectComboBox(QtWidgets.QComboBox):
         self.lineEdit().setReadOnly(True)
         self.setInsertPolicy(QtWidgets.QComboBox.InsertPolicy.NoInsert)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+        self.setFixedHeight(30)
+        self.setMinimumWidth(240)
         if geometry:
             self.setGeometry(geometry)
 
@@ -38,14 +41,9 @@ class MultiSelectComboBox(QtWidgets.QComboBox):
                 background-color: #9187E5;
                 color: #FFFFFF;       
             }
-            
         """)
 
         self.lineEdit().setPlaceholderText("Выберите группы")
-
-        palette = self.lineEdit().palette()
-        palette.setColor(QtGui.QPalette.ColorRole.PlaceholderText, QtGui.QColor("#000000"))
-        self.lineEdit().setPalette(palette)
 
         self.view().pressed.connect(self.handle_item_pressed)
         self._items = []

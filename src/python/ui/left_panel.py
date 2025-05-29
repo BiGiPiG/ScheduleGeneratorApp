@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtWidgets
 
-from src.python.core.database_manager import DatabaseManager
+from src.python.core.service_manager import ServiceManager
 from src.python.ui.components.calendar_combo_box import CalendarComboBox
 from src.python.ui.components.multiselect_combo_box import MultiSelectComboBox
 
@@ -51,15 +51,13 @@ def create_button(parent, geometry, text, object_name):
 
 
 class LeftPanel(QtWidgets.QFrame):
-    def __init__(self, parent=None, right_panel=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
+        self.date_comboBox = None
         self.setup_ui(parent)
-        self.right_panel = right_panel
-
-        self.right_panel.cancel_button.clicked.connect(self.set_default_comboboxes)
 
         # подключение к бд
-        self.dbManager = DatabaseManager()
+        self.dbManager = ServiceManager()
 
         # инициализируем селеторы
         self.set_default_comboboxes()
@@ -82,7 +80,7 @@ class LeftPanel(QtWidgets.QFrame):
         # Группа
         self.group_label = create_label(
             parent=self,
-            geometry=QtCore.QRect(50, 80, 100, 30),
+            geometry=QtCore.QRect(50, 80, 160, 30),
             text="Группа",
             object_name="group_label"
         )
@@ -110,10 +108,6 @@ class LeftPanel(QtWidgets.QFrame):
         self.date_comboBox = CalendarComboBox(self)
         self.date_comboBox.setGeometry(QtCore.QRect(50, 250, 200, 30))
 
-        self.date_comboBox.dateClicked.connect(self.activate_choice_button)
-        self.group_multiSelectComboBox.activated.connect(self.update_combo_boxes)
-        self.discipline_comboBox.activated.connect(self.update_combo_boxes)
-
     def setup_buttons(self):
         parent_width = self.width()
         x_position = (parent_width - 150) // 2
@@ -137,9 +131,6 @@ class LeftPanel(QtWidgets.QFrame):
             object_name="reset_button"
         )
 
-        self.reset_button.clicked.connect(self.set_default_comboboxes)
-        self.choice_button.clicked.connect(self.update_right_panel)
-
     def create_combobox(self, geometry, placeholder):
         combo = QtWidgets.QComboBox(self)
         combo.setGeometry(geometry)
@@ -152,7 +143,7 @@ class LeftPanel(QtWidgets.QFrame):
                 font-weight: 300;
                 font-size: 24px;
                 line-height: 29px;
-                color: #000000;
+                color: #808080;
                 border-radius: 0px;
             }
             
@@ -273,25 +264,5 @@ class LeftPanel(QtWidgets.QFrame):
     def activate_choice_button(self):
         self.choice_button.setEnabled(True)
 
-    def update_right_panel(self):
-        discipline = self.dbManager.discipline_service.get_all_discipline_information(
-            self.group_multiSelectComboBox.selectedItems(),
-            self.date_comboBox.currentText(),
-            self.discipline_comboBox.currentText()[:-3],
-            self.discipline_comboBox.currentText()[-2:]
-        )
-
-        # prep = self.dbManager.discipline_service.get_prep(
-        #     self.group_multiSelectComboBox.selectedItems(),
-        #     self.date_comboBox.currentText(),
-        #     self.discipline_comboBox.currentText()[:-3],
-        #     self.discipline_comboBox.currentText()[-2:]
-        # )
-        #
-        # if not prep:
-        #     prep = "Неизвестно"
-        # else:
-        #     prep = prep[0]
-
-        self.right_panel.update_selected_groups(self.group_multiSelectComboBox.selectedItems())
-        self.right_panel.update_labels(discipline[0])
+    def show(self):
+        super().show()

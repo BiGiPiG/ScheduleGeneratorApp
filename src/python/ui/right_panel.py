@@ -1,7 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
-from src.python.core.database_manager import DatabaseManager
-import traceback
+from src.python.core.service_manager import ServiceManager
 
 
 def create_labeled_edit(parent, label_text, value_text, y, object_name):
@@ -37,7 +36,6 @@ def create_labeled_edit(parent, label_text, value_text, y, object_name):
     """)
 
     return line_edit
-
 
 def create_label(parent, geometry, text, object_name):
     """Создание метки с общими стилями"""
@@ -89,7 +87,7 @@ class RightPanel(QtWidgets.QFrame):
         super().__init__(parent)
         self.image_label = None
         self.setup_ui()
-        self.dbManager = DatabaseManager()
+        self.dbManager = ServiceManager()
 
         self.selected_groups = list()
         self.old_date = None
@@ -109,6 +107,8 @@ class RightPanel(QtWidgets.QFrame):
         self.setup_image()
         self.setup_buttons()
         self.setup_labels()
+
+
 
     def setup_image(self):
         self.image_label.setStyleSheet("border: none;")
@@ -152,25 +152,16 @@ class RightPanel(QtWidgets.QFrame):
 
         self.reschedule_button = create_button(
             parent=self,
-            geometry=QtCore.QRect(x_position, 410, 150, 40),
+            geometry=QtCore.QRect(x_position, 440, 150, 40),
             text="Перенести",
             object_name="reschedule_button"
         )
-        self.reschedule_button.clicked.connect(self.show_reschedule_dialog)
 
         self.cancel_button = create_button(
             parent=self,
-            geometry=QtCore.QRect(x_position, 480, 150, 40),
+            geometry=QtCore.QRect(x_position, 510, 150, 40),
             text="Отменить",
             object_name="cancel_button"
-        )
-        self.cancel_button.clicked.connect(self.show_cancel_dialog)
-
-        self.add_button = create_button(
-            parent=self,
-            geometry=QtCore.QRect(x_position, 550, 150, 40),
-            text="Добавить",
-            object_name="add_button"
         )
 
     def setup_labels(self):
@@ -234,10 +225,9 @@ class RightPanel(QtWidgets.QFrame):
             return
 
         try:
+            groups = self.dbManager.group_service.get_for_action(self.selected_groups, self.old_date,
+                                                              title, subgroup, self.old_pair)
 
-            (self.dbManager.discipline_service.
-             reschedule_discipline(self.selected_groups, self.old_date, self.old_pair,
-                                   new_date, title, subgroup, new_pair, new_room))
             if len(groups) > 1:
                 groups_text = ", ".join(groups[:-1]) + ", " + groups[-1]
                 message = (
@@ -252,6 +242,10 @@ class RightPanel(QtWidgets.QFrame):
                     f"на {new_date} в аудиторию {new_room} на {new_pair} пару"
                 )
 
+            (self.dbManager.discipline_service.
+             reschedule_discipline(self.selected_groups, self.old_date, self.old_pair,
+                                   new_date, title, subgroup, new_pair, new_room, message))
+
             self.update_old_time(new_date)
             self.update_old_pair(new_pair)
 
@@ -260,10 +254,8 @@ class RightPanel(QtWidgets.QFrame):
                 f"Не удалось перенести пару.\n{e}"
             )
         except Exception as e:
-            error_location = traceback.format_exc()
-            print(f"Ошибка в:\n{error_location}")
             message = (
-                f"Не удалось перенести пару ^-^"
+                f"Не удалось перенести пару. Данные введены некорректно"
             )
 
         dialog = QtWidgets.QMessageBox()
@@ -272,7 +264,7 @@ class RightPanel(QtWidgets.QFrame):
         dialog.setText(message)
         dialog.setIcon(QtWidgets.QMessageBox.Icon.Information)
 
-        copy_button = dialog.addButton("Скопировать", QtWidgets.QMessageBox.ButtonRole.ActionRole)
+        dialog.addButton("Скопировать", QtWidgets.QMessageBox.ButtonRole.ActionRole)
 
         dialog.exec()
 
@@ -303,7 +295,8 @@ class RightPanel(QtWidgets.QFrame):
             return
 
         try:
-            self.dbManager.discipline_service.delete_discipline(groups, datetime_, subject, subgroup, pair)
+            groups = self.dbManager.group_service.get_for_action(self.selected_groups, self.old_date,
+                                                                 subject, subgroup, self.old_pair)
 
             if len(groups) > 1:
                 groups_text = ", ".join(groups[:-1]) + ", " + groups[-1]
@@ -316,9 +309,11 @@ class RightPanel(QtWidgets.QFrame):
                     f"Группа {groups[0]}\n"
                     f"{subject} {datetime_} на {pair} паре отменяется\n"
                 )
+
+            self.dbManager.discipline_service.delete_discipline(groups, datetime_, subject, subgroup, pair, message)
         except:
             message = (
-                f"Не удалось отменить пару :(\n"
+                f"Не удалось отменить пару. Данные введены некорректно\n"
             )
 
         dialog = QtWidgets.QMessageBox()
@@ -327,7 +322,7 @@ class RightPanel(QtWidgets.QFrame):
         dialog.setText(message)
         dialog.setIcon(QtWidgets.QMessageBox.Icon.Information)
 
-        copy_button = dialog.addButton("Скопировать", QtWidgets.QMessageBox.ButtonRole.ActionRole)
+        dialog.addButton("Скопировать", QtWidgets.QMessageBox.ButtonRole.ActionRole)
 
         dialog.exec()
 
@@ -359,3 +354,9 @@ class RightPanel(QtWidgets.QFrame):
 
     def update_old_pair(self, pair: str):
         self.old_pair = pair
+
+    def hide_panel(self):
+        self.hide()
+
+    def show(self):
+        super().show()
