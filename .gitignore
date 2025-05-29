@@ -1,4 +1,4 @@
 Config.py
 *__pycache__*
-requirements.txt
 Dockerfile
+./venv
