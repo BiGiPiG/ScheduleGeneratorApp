@@ -1,0 +1,60 @@
+@startuml ProjectStructure
+
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+title Диаграмма классов проекта "Schedule Generator App"
+
+package "Data Layer" {
+  class "DateRepository" as date_repo <<repository>> #LightBlue
+  class "DisciplineRepository" as disc_repo <<repository>> #LightBlue
+  class "GroupRepository" as group_repo <<repository>> #LightBlue
+  class "InfoRepository" as info_repo <<repository>> #LightBlue
+}
+
+package "Services" {
+  class "ServiceManager" as srv <<manager>> #LightSkyBlue
+  class "DateService" as date_srv <<service>> #LightGreen
+  class "DisciplineService" as disc_srv <<service>> #LightGreen
+  class "GroupService" as group_srv <<service>> #LightGreen
+  class "InfoService" as info_srv <<service>> #LightGreen
+}
+
+package "UI" {
+  class "CalendarComboBox" as calendar_cb <<UI>> #MistyRose {
+
+  }
+  class "HistoryPanel" as history_panel <<UI>> #MistyRose
+  class "LeftPanel" as left_panel <<UI>> #MistyRose
+  class "MultiSelectComboBox" as multi_cb <<UI>> #MistyRose
+  class "RightPanel" as right_panel <<UI>> #MistyRose
+  class "UI_MainWindow" as main_window <<UI>> #MistyRose
+}
+
+class "Main" as main <<entry point>> #LightGray
+
+' Связи между слоями
+main --> main_window : создает
+
+main_window --> left_panel : содержит
+main_window --> right_panel : содержит
+main_window --> history_panel : содержит
+
+left_panel --> multi_cb : использует
+left_panel --> calendar_cb : использует
+left_panel --> srv : вызывает
+right_panel --> srv : вызывает
+history_panel --> srv : вызывает
+
+srv --> date_srv : делегирует
+srv --> disc_srv : делегирует
+srv --> group_srv : делегирует
+srv --> info_srv : делегирует
+
+date_srv --> date_repo : использует
+disc_srv --> disc_repo : использует
+group_srv --> group_repo : использует
+info_srv --> info_repo : использует
+
+@enduml
