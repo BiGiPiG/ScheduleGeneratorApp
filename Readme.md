@@ -38,7 +38,7 @@
 2. Установите необходимые зависимости
     
    ```bash
-    cd ScheduleGeneratorApp
+    cd ./ScheduleGeneratorApp
     pip install -r requirements.txt
     ```
 
