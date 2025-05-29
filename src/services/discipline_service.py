@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import List
 from datetime import date
 
-from src.python.repositories.discipline_repository import Discipline
+from src.repositories.discipline_repository import Discipline
 
 
 @dataclass

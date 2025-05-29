@@ -1,8 +1,8 @@
 from PyQt6 import QtWidgets
 
-from src.python.ui.history_panel import HistoryPanel
-from src.python.ui.left_panel import LeftPanel
-from src.python.ui.right_panel import RightPanel
+from src.ui.history_panel import HistoryPanel
+from src.ui.left_panel import LeftPanel
+from src.ui.right_panel import RightPanel
 
 
 class Ui_MainWindow(object):

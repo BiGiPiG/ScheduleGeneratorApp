@@ -1,7 +1,7 @@
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import QFrame
 
-from src.python.core.service_manager import ServiceManager
+from src.core.service_manager import ServiceManager
 
 
 class HistoryPanel(QtWidgets.QFrame):

@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 
-from src.python.core.service_manager import ServiceManager
+from src.core.service_manager import ServiceManager
 
 
 def create_labeled_edit(parent, label_text, value_text, y, object_name):

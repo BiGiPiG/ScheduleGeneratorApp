@@ -1,16 +1,14 @@
-import os
-
 import psycopg2
 
-from src.python.repositories.date_repository import DateRepository
-from src.python.repositories.discipline_repository import DisciplineRepository
-from src.python.repositories.group_repository import GroupRepository
-from src.python.repositories.info_repository import InfoRepository
-from src.python.services.date_service import DateService
-from src.python.services.discipline_service import DisciplineService
-from src.python.services.group_service import GroupService
+from src.repositories.date_repository import DateRepository
+from src.repositories.discipline_repository import DisciplineRepository
+from src.repositories.group_repository import GroupRepository
+from src.repositories.info_repository import InfoRepository
+from src.services.date_service import DateService
+from src.services.discipline_service import DisciplineService
+from src.services.group_service import GroupService
 from Config import Config
-from src.python.services.info_service import InfoService
+from src.services.info_service import InfoService
 
 
 class ServiceManager:

@@ -1,6 +1,6 @@
 from PyQt6 import QtWidgets
 import sys
-from src.python.ui.Ui_MainWindow import Ui_MainWindow
+from src.ui.Ui_MainWindow import Ui_MainWindow
 
 
 if __name__ == "__main__":
