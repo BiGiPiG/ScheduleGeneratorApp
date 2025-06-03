@@ -2,3 +2,4 @@ Config.py
 *__pycache__*
 Dockerfile
 ./venv
+.idea
