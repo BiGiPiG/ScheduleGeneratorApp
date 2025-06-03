@@ -22,16 +22,16 @@ class CalendarComboBox(QComboBox):
 
         # Формат для активных дат
         self.enabled_format = QTextCharFormat()
-        self.enabled_format.setForeground(QColor("#000000"))
+        self.enabled_format.setForeground(QColor("#808080"))
         self.enabled_format.setBackground(QColor("#E6E0FF"))
 
         # Стандартное отображение
         self.default_format = QTextCharFormat()
-        self.default_format.setForeground(QColor("#000000"))  # Черный цвет для текста
+        self.default_format.setForeground(QColor("#808080"))  # Черный цвет для текста
         self.default_format.setBackground(QColor("#ffffff"))  # Белый фон
 
         palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Text, QColor("#000000"))  # Цвет текста
+        palette.setColor(QPalette.ColorRole.Text, QColor("#808080"))  # Цвет текста
         palette.setColor(QPalette.ColorRole.PlaceholderText, QColor("#000000"))  # Цвет плейсхолдера
         self.setPalette(palette)
 
@@ -61,7 +61,7 @@ class CalendarComboBox(QComboBox):
             QComboBox {
                 font-family: 'Inter';
                 font-size: 24px;
-                color: #000000;
+                color: #808080;
             }
         """)
 

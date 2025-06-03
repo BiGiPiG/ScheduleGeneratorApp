@@ -45,6 +45,10 @@ def create_button(parent, geometry, text, object_name):
             background-color: #A99EFF;
             border: 2px solid #FFFFFF;
         }
+        QPushButton:disabled {
+            background-color: #CCCCCC;
+            color: #666666;
+        }
     """)
     button.setText(text)
     return button

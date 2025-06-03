@@ -51,15 +51,19 @@ class Ui_MainWindow(object):
         self.central_widget.setStyleSheet("background: #DCD9F1;")
 
     def update_right_panel(self):
-        discipline = self.leftPanel.dbManager.discipline_service.get_all_discipline_information(
-            self.leftPanel.group_multiSelectComboBox.selectedItems(),
-            self.leftPanel.date_comboBox.currentText(),
-            self.leftPanel.discipline_comboBox.currentText()[:-3],
-            self.leftPanel.discipline_comboBox.currentText()[-2:]
-        )
+        try:
 
-        self.rightPanel.update_selected_groups(self.leftPanel.group_multiSelectComboBox.selectedItems())
-        self.rightPanel.update_labels(discipline[0])
+            discipline = self.leftPanel.dbManager.discipline_service.get_all_discipline_information(
+                self.leftPanel.group_multiSelectComboBox.selectedItems(),
+                self.leftPanel.date_comboBox.currentText(),
+                self.leftPanel.discipline_comboBox.currentText()[:-3],
+                self.leftPanel.discipline_comboBox.currentText()[-2:]
+            )
+
+            self.rightPanel.update_selected_groups(self.leftPanel.group_multiSelectComboBox.selectedItems())
+            self.rightPanel.update_labels(discipline[0])
+        except Exception as e:
+            print(f"error {e}")
 
     def hide_panels(self):
         self.leftPanel.hide()

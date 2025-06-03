@@ -96,24 +96,41 @@ class DisciplineRepository:
             return []
 
     def find_all_discipline_information(self, group_names, date, title, work_type):
-        query = """
-                SELECT pair, d.shorttitle, sc_rasp18_rooms.room, sc_rasp18_days.day, rg.subgroup
-                FROM sc_group g
-                JOIN sc_rasp18_groups rg ON g.id = rg.group_id
-                JOIN sc_rasp18 r ON rg.rasp18_id = r.id
-                JOIN sc_disc d ON r.disc_id = d.id
-                JOIN sc_rasp18_days ON sc_rasp18_days.id = r.day_id
-                JOIN sc_worktypes ON r.worktype = sc_worktypes.id
-                JOIN sc_rasp18_rooms ON r.id = sc_rasp18_rooms.rasp18_id
-                WHERE g.title = ANY(%s) and sc_rasp18_days.day = %s and d.shorttitle = %s
-                and sc_worktypes.title = %s
-                """
+        query_main = """
+             SELECT pair, \
+                    d.shorttitle, \
+                    sc_rasp18_days.day, \
+                    rg.subgroup, \
+                    rg.rasp18_id
+             FROM sc_group g
+                      JOIN sc_rasp18_groups rg ON g.id = rg.group_id
+                      JOIN sc_rasp18 r ON rg.rasp18_id = r.id
+                      JOIN sc_disc d ON r.disc_id = d.id
+                      JOIN sc_rasp18_days ON sc_rasp18_days.id = r.day_id
+                      JOIN sc_worktypes ON r.worktype = sc_worktypes.id
+             WHERE g.title = ANY (%s)
+               AND sc_rasp18_days.day = %s
+               AND d.shorttitle = %s
+               AND sc_worktypes.title = %s \
+         """
+
+        query_room = """
+         SELECT room \
+         FROM sc_rasp18_rooms \
+         WHERE rasp18_id = %s \
+         """
 
         try:
-            self.cursor.execute(query, (group_names, date, title, work_type))
-            return [[row[0], row[1], row[2],
-                    QDate(row[3].year, row[3].month, row[3].day).toString("yyyy-MM-dd"), row[4]]
-                    for row in self.cursor.fetchall()]
+            self.cursor.execute(query_main, (group_names, date, title, work_type))
+            rows = self.cursor.fetchall()
+            results = []
+            for pair, shorttitle, day, subgroup, rasp18_id in rows:
+                self.cursor.execute(query_room, (rasp18_id,))
+                room_row = self.cursor.fetchone()
+                room = room_row[0] if room_row is not None else "Не найдено"
+                date_str = QDate(day.year, day.month, day.day).toString("yyyy-MM-dd")
+                results.append([pair, shorttitle, room, date_str, subgroup])
+            return results
         except Exception as e:
             print(f"Ошибка при получении информации о предмете: {e}")
             return []
@@ -126,7 +143,6 @@ class DisciplineRepository:
             JOIN sc_rasp18 r ON rg.rasp18_id = r.id
             JOIN sc_disc d ON r.disc_id = d.id
             JOIN sc_rasp18_days ON sc_rasp18_days.id = r.day_id
-            JOIN sc_rasp18_rooms ON r.id = sc_rasp18_rooms.rasp18_id
             WHERE g.title = ANY(%s) and sc_rasp18_days.day = %s and d.shorttitle = %s
             and rg.subgroup = %s
             and r.pair = %s

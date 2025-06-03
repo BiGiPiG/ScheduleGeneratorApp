@@ -38,7 +38,6 @@ def create_labeled_edit(parent, label_text, value_text, y, object_name):
     return line_edit
 
 def create_label(parent, geometry, text, object_name):
-    """Создание метки с общими стилями"""
     label = QtWidgets.QLabel(parent=parent)
     label.setGeometry(geometry)
     label.setObjectName(object_name)
@@ -85,7 +84,6 @@ def create_button(parent, geometry, text, object_name):
 class RightPanel(QtWidgets.QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.image_label = None
         self.setup_ui()
         self.dbManager = ServiceManager()
 
@@ -103,28 +101,8 @@ class RightPanel(QtWidgets.QFrame):
         """)
 
         self.setup_main_text()
-        self.image_label = QtWidgets.QLabel(self)
-        self.setup_image()
         self.setup_buttons()
         self.setup_labels()
-
-
-
-    def setup_image(self):
-        self.image_label.setStyleSheet("border: none;")
-        self.image_label.setFixedSize(300, 300)
-        self.image_label.move(
-            (self.width() - 300) // 2,
-            (self.height() - 300) // 2
-        )
-
-        try:
-            pixmap = QtGui.QPixmap("../../images/Schedule.png")
-            if pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(300, 300)
-                self.image_label.setPixmap(scaled_pixmap)
-        except Exception as e:
-            print(f"Ошибка загрузки изображения: {e}")
 
     def setup_main_text(self):
         """Настройка основного заголовка"""
@@ -205,13 +183,21 @@ class RightPanel(QtWidgets.QFrame):
             object_name="datetime_edit"
         )
 
+        self.group_edit = create_labeled_edit(
+            parent=self,
+            label_text="Группы:",
+            value_text="",
+            y=280,
+            object_name="group_edit"
+        )
+
     def show_reschedule_dialog(self):
-        groups = self.selected_groups
+        groups = self.group_edit.text().split(", ")
         new_pair = self.pair_edit.text()
         title = self.subject_edit.text()
         new_room = self.room_edit.text()
         new_date = self.datetime_edit.text()
-        subgroup = self.subgroup_edit.text()
+        subgroup = self.subgroup_edit.text() if self.subgroup_edit.text() != "Вся группа" else "0"
 
         if self.check_reschedule(groups, new_pair, title, new_room, subgroup, new_date):
             message = "Ошибка при создании переноса"
@@ -276,12 +262,12 @@ class RightPanel(QtWidgets.QFrame):
                 not len(room) or not len(datetime_)) or not len(subgroup)
 
     def show_cancel_dialog(self):
-        groups = self.selected_groups
+        groups = self.group_edit.text().split(", ")
         pair = self.pair_edit.text()
         subject = self.subject_edit.text()
         room = self.room_edit.text()
         datetime_ = self.datetime_edit.text()
-        subgroup = self.subgroup_edit.text()
+        subgroup = self.subgroup_edit.text() if self.subgroup_edit.text() != "Вся группа" else "0"
 
         if self.check_reschedule(groups, pair, subject, room, subgroup, datetime_):
             message = "Не удалось удалить пару"
@@ -298,23 +284,24 @@ class RightPanel(QtWidgets.QFrame):
             groups = self.dbManager.group_service.get_for_action(self.selected_groups, self.old_date,
                                                                  subject, subgroup, self.old_pair)
 
-            if len(groups) > 1:
+            if len(groups) > 1 and subgroup != "<UNK> <UNK>":
                 groups_text = ", ".join(groups[:-1]) + ", " + groups[-1]
                 message = (
                     f"Группы {groups_text}\n"
                     f"{subject} {datetime_} на {pair} паре отменяется\n"
                 )
-            else:
+            elif len(groups) == 1:
                 message = (
                     f"Группа {groups[0]}\n"
                     f"{subject} {datetime_} на {pair} паре отменяется\n"
                 )
 
             self.dbManager.discipline_service.delete_discipline(groups, datetime_, subject, subgroup, pair, message)
-        except:
+        except Exception as e:
             message = (
                 f"Не удалось отменить пару. Данные введены некорректно\n"
             )
+            print(e)
 
         dialog = QtWidgets.QMessageBox()
         dialog.setWindowTitle("Информация об отмене")
@@ -335,9 +322,10 @@ class RightPanel(QtWidgets.QFrame):
         self.subject_edit.setText(str(info[1]))
         self.room_edit.setText(str(info[2]))
         self.datetime_edit.setText(str(info[3]))
-        self.subgroup_edit.setText(str(info[4]))
+        self.subgroup_edit.setText(str(info[4]) if str(info[4]) != "0" else "Вся группа")
         self.update_old_time(info[3])
         self.update_old_pair(info[0])
+        self.group_edit.setText(", ".join(self.selected_groups))
 
     def set_default_labels(self):
         self.pair_edit.clear()
@@ -345,6 +333,7 @@ class RightPanel(QtWidgets.QFrame):
         self.room_edit.clear()
         self.datetime_edit.clear()
         self.subgroup_edit.clear()
+        self.group_edit.clear()
 
     def update_selected_groups(self, groups):
         self.selected_groups = groups

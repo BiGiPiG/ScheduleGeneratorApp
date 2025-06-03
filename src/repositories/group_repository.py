@@ -86,7 +86,6 @@ class GroupRepository:
             JOIN sc_rasp18 r ON rg.rasp18_id = r.id
             JOIN sc_disc d ON r.disc_id = d.id
             JOIN sc_rasp18_days ON sc_rasp18_days.id = r.day_id
-            JOIN sc_rasp18_rooms ON r.id = sc_rasp18_rooms.rasp18_id
             WHERE g.title = ANY(%s) and sc_rasp18_days.day = %s and d.shorttitle = %s
             and rg.subgroup = %s
             and r.pair = %s

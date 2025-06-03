@@ -47,10 +47,11 @@ class DisciplineService:
 
     def delete_discipline(self, group_names, datetime_, title, subgroup, pair, message):
         info = self.db.find_id(group_names, datetime_, title, subgroup, pair)
+
         if len(info):
             self.db.delete_discipline(info[0], message)
         else:
-            print("YНе удалось найти пару")
+            print("Ошибка при удалении, find_id вернул []")
             raise RuntimeError("Не удалось найти пару")
 
     def reschedule_discipline(self, group_names, old_date, old_pair,
